@@ -1,0 +1,72 @@
+@model KampusKodu.Models.AppUser
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<AppUser> UserManager
+
+@{
+    ViewData["Title"] = "Profil";
+    var currentUser = await UserManager.GetUserAsync(User);
+    var isMe = currentUser != null && currentUser.Id == Model.Id;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg overflow-hidden">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <div class="mb-3">
+                        <i class="bi bi-person-circle display-1"></i>
+                    </div>
+                    <h2 class="fw-bold mb-0">@Model.FullName</h2>
+                    <p class="mb-0 opacity-75">@Model.Email</p>
+                </div>
+                <div class="card-body p-4 text-center">
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-4">
+                            <div class="p-3 bg-body-tertiary rounded shadow-sm">
+                                <h3 class="fw-bold text-warning mb-0">@Model.Score</h3>
+                                <small class="text-body-secondary">Puan</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-body-tertiary rounded shadow-sm">
+                                <h3 class="fw-bold text-info mb-0">@ViewBag.TopicCount</h3>
+                                <small class="text-body-secondary">Başlık</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-body-tertiary rounded shadow-sm">
+                                <h3 class="fw-bold text-success mb-0">@ViewBag.EntryCount</h3>
+                                <small class="text-body-secondary">Yorum</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (isMe)
+                    {
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill"></i> Bu senin profilin.
+                        </div>
+                    }
+
+                    <hr />
+
+                    <h5 class="text-start fw-bold mb-3 text-body-emphasis"><i class="bi bi-clock-history"></i> Son Başlıkları</h5>
+                    
+                    @if (ViewBag.RecentTopics != null)
+                    {
+                        <div class="list-group text-start">
+                        @foreach (var topic in (List<KampusKodu.Models.Topic>)ViewBag.RecentTopics)
+                        {
+                            <a asp-controller="Topics" asp-action="Details" asp-route-id="@topic.Id" class="list-group-item list-group-item-action">
+                                <span class="fw-bold">@topic.Title</span>
+                                <small class="text-muted float-end">@topic.CreatedDate.ToString("dd.MM.yyyy")</small>
+                            </a>
+                        }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

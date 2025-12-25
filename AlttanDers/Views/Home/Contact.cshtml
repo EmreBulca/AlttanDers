@@ -1,0 +1,264 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<AppUser> SignInManager
+@{
+    ViewData["Title"] = "İletişim";
+}
+
+<div class="container py-5">
+
+    <nav aria-label="breadcrumb" class="mb-5">
+        <ol class="breadcrumb justify-content-center bg-body-tertiary shadow-sm py-2 px-4 rounded-pill d-inline-flex mx-auto">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none fw-bold">Anasayfa</a></li>
+            <li class="breadcrumb-item active text-muted" aria-current="page">İletişim</li>
+        </ol>
+    </nav>
+
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-primary">Bize Ulaşın</h1>
+        <p class="lead text-muted">
+            Bir sorun mu var? Öneri, şikayet veya iş birliği için mesajını bekliyoruz.
+        </p>
+    </div>
+
+    <div class="row g-4 mb-5 justify-content-center">
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm text-center py-4 hover-effect">
+                <div class="card-body">
+                    <div class="mb-3 text-primary">
+                        <i class="bi bi-geo-alt-fill fs-1"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Adresimiz</h5>
+                    <p class="card-text text-muted mb-3">
+                        Yozgat Bozok Üniversitesi<br>
+                        Mühendislik-Mimarlık Fakültesi<br>
+                        Yozgat / Merkez
+                    </p>
+                    <a href="https://goo.gl/maps/XYZ" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-4">
+                        <i class="bi bi-map-fill me-2"></i>Yol Tarifi Al
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm text-center py-4 hover-effect">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <div class="mb-3 text-danger">
+                        <i class="bi bi-envelope-fill fs-1"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">E-Posta</h5>
+
+                    <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
+                        <a href="mailto:kampuskoduiletisim@gmail.com" class="text-decoration-none text-muted fs-5">
+                            kampuskoduiletisim@gmail.com
+                        </a>
+                        <button onclick="mailKopyala()" id="btnKopyala" class="btn btn-sm btn-light border" title="Adresi Kopyala">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted mt-2 fst-italic">Kopyalamak için butona tıklayın.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-0 border rounded-4 overflow-hidden shadow-lg mb-5">
+        <div class="col-lg-6 h-100 min-vh-50">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3064.467727771786!2d34.80277337653606!3d39.81903337135311!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14d4349197c369e5%3A0x6334f5979f4c39f0!2sYozgat%20Bozok%20%C3%9Cniversitesi%20Erdo%C4%9Fan%20Akda%C4%9F%20Kamp%C3%BCs%C3%BC!5e0!3m2!1str!2str!4v1709825421000!5m2!1str!2str"
+                    width="100%"
+                    height="600"
+                    style="border:0;"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+
+        <div class="col-lg-6 bg-body-tertiary p-5">
+            <h3 class="fw-bold mb-4">Bize Yazın ✍️</h3>
+
+
+            @if (SignInManager.IsSignedIn(User))
+            {
+                <form id="contactForm" action="https://formspree.io/f/xnjanopa" method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Adınız</label>
+                            <input type="text" name="Ad" class="form-control" placeholder="Örn: Emre" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Soyadınız</label>
+                            <input type="text" name="Soyad" class="form-control" placeholder="Örn: Bulca" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">E-Posta Adresiniz</label>
+                            <input type="email" name="email" class="form-control" placeholder="ornek@gmail.com" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Konu</label>
+                            <select name="Konu" class="form-select">
+                                <option selected>Genel Soru</option>
+                                <option value="Oneri">Öneri / Tavsiye</option>
+                                <option value="Teknik">Teknik Destek</option>
+                                <option value="Isbirligi">Reklam / İş Birliği</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Mesajınız</label>
+                            <textarea name="Mesaj" class="form-control" rows="4" placeholder="Mesajınızı buraya yazabilirsiniz..." required></textarea>
+                        </div>
+
+                        <div id="statusMessage" class="col-12"></div>
+
+                        <div class="col-12">
+                            <button type="submit" id="submitButton" class="btn btn-primary btn-lg w-100">
+                                Mesajı Gönder <i class="bi bi-send-fill ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            }
+            else
+            {
+                <div class="alert alert-warning text-center p-4">
+                    <i class="bi bi-lock-fill fs-1 d-block mb-3"></i>
+                    <h4 class="fw-bold">Giriş Yapmalısınız</h4>
+                    <p>Soru sormak veya bizimle iletişime geçmek için lütfen kayıt olunuz.</p>
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-success fw-bold">
+                        Hemen Kayıt Ol
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-5">
+        <div class="col-12 text-center mb-4">
+            <h3 class="fw-bold text-primary">Sıkça Sorulan Sorular (S.S.S)</h3>
+            <p class="text-muted">Site kullanımı ve iletişim hakkında merak ettikleriniz.</p>
+        </div>
+
+        <div class="col-md-8">
+            <div class="accordion shadow-sm" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                            <strong>👥 İçerik paylaşmak için üye olmam gerekiyor mu?</strong>
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-muted">
+                            Hayır, <strong>Kampüs Kodu</strong> artık üyelik tabanlı bir platformdur. Güvenli bir ortam sağlamak amacıyla içerik paylaşmak için kayıt olmanız gerekmektedir.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                            <strong>📝 Yeni bir konu başlığı nasıl açabilirim?</strong>
+                        </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-muted">
+                            Kayıt olup giriş yaptıktan sonra ana sayfadaki <strong>"Ders Notu / Soru"</strong> veya <strong>"Başlık Aç"</strong> butonlarını kullanarak paylaşım yapabilirsiniz.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingThree">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                            <strong>💬 Paylaşımlara nasıl yorum yapabilirim?</strong>
+                        </button>
+                    </h2>
+                    <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-muted">
+                            İlgilendiğiniz başlığa girdikten sonra sayfanın altındaki yorum kutusunu kullanabilirsiniz. Herkes özgürce düşüncesini belirtebilir, herhangi bir kısıtlama yoktur.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingFour">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
+                            <strong>📞 Yönetim ekibiyle nasıl iletişime geçebilirim?</strong>
+                        </button>
+                    </h2>
+                    <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-muted">
+                            Bu sayfada yer alan formu doldurarak bize hemen ulaşabilirsiniz. Ayrıca doğrudan <code>kampuskoduiletisim@gmail.com</code> adresine e-posta gönderebilirsiniz.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 1. MAIL KOPYALAMA İŞLEMİ
+    function mailKopyala() {
+        var emailText = "kampuskoduiletisim@gmail.com";
+        var btn = document.getElementById("btnKopyala");
+        var originalIcon = '<i class="bi bi-clipboard"></i>';
+
+        navigator.clipboard.writeText(emailText).then(function() {
+            btn.className = "btn btn-sm btn-success text-white";
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Kopyalandı!';
+            setTimeout(function() {
+                btn.className = "btn btn-sm btn-light border";
+                btn.innerHTML = originalIcon;
+            }, 2000);
+        });
+    }
+
+    // 2. FORM GÖNDERME İŞLEMİ (AJAX)
+    var form = document.getElementById("contactForm");
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+        var status = document.getElementById("statusMessage");
+        var btn = document.getElementById("submitButton");
+        var data = new FormData(event.target);
+
+        // Butonu Kilitle
+        btn.disabled = true;
+        btn.innerHTML = "Gönderiliyor...";
+
+        fetch(event.target.action, {
+            method: form.method,
+            body: data,
+            headers: { 'Accept': 'application/json' }
+        }).then(response => {
+            if (response.ok) {
+                // Başarılı
+                status.innerHTML = '<div class="alert alert-success mt-3">Mesajınız başarıyla gönderildi! 🚀</div>';
+                form.reset(); // Kutuları Temizle
+            } else {
+                // Hata
+                response.json().then(data => {
+                    if (Object.hasOwn(data, 'errors')) {
+                        status.innerHTML = '<div class="alert alert-danger mt-3">' + data["errors"].map(error => error["message"]).join(", ") + '</div>';
+                    } else {
+                        status.innerHTML = '<div class="alert alert-danger mt-3">Bir hata oluştu.</div>';
+                    }
+                })
+            }
+        }).catch(error => {
+            status.innerHTML = '<div class="alert alert-danger mt-3">Sunucu hatası oluştu.</div>';
+        }).finally(() => {
+            // Butonu tekrar aç
+            btn.disabled = false;
+            btn.innerHTML = 'Mesajı Gönder <i class="bi bi-send-fill ms-2"></i>';
+
+            // Mesajı 5 saniye sonra kaldır
+            setTimeout(() => { status.innerHTML = ""; }, 5000);
+        });
+    }
+    if (form) {
+        form.addEventListener("submit", handleSubmit);
+    }
+
+</script>

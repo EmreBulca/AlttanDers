@@ -1,0 +1,409 @@
+﻿@model KampusKodu.Models.HomeViewModel
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
+
+@{
+    ViewData["Title"] = "Ana Sayfa";
+    var user = await UserManager.GetUserAsync(User);
+}
+
+<div class="row mt-4">
+    <div class="col-md-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="text-secondary fw-bold mb-0"><i class="bi bi-hash text-primary"></i> Gündem</h4>
+        </div>
+
+        <form asp-action="Index" method="get" class="mb-3">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Başlık ara..." value="@ViewData["ArananKelime"]">
+                <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i></button>
+                @if (ViewData["ArananKelime"] != null)
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary" title="Temizle">X</a>
+                }
+            </div>
+        </form>
+
+        @if (Model.Gundem != null && Model.Gundem.Any())
+        {
+        @if (Model.Gundem != null && Model.Gundem.Any())
+        {
+            <div class="d-flex flex-column gap-3">
+                @foreach (var baslik in Model.Gundem)
+                {
+                    <a asp-controller="Topics" asp-action="Details" asp-route-id="@baslik.Id" class="card text-decoration-none shadow-sm border-0 h-100 hover-scale">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">
+                                    @(baslik.Entries != null ? baslik.Entries.Count : 0) Yanıt
+                                </span>
+                                @if(!string.IsNullOrEmpty(baslik.FilePath))
+                                {
+                                    <i class="bi bi-paperclip text-warning fs-5"></i>
+                                }
+                            </div>
+                            <h6 class="card-title fw-bold text-body mb-2">@baslik.Title</h6>
+                            @if(!string.IsNullOrEmpty(baslik.Department))
+                            {
+                                <div class="small text-muted"><i class="bi bi-mortarboard-fill me-1"></i> @baslik.Department</div>
+                            }
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+        }
+        else
+        {
+            <div class="alert alert-light text-center border p-3">
+                <p class="mb-0 text-muted small">Aradığın başlık yok.</p>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+            <h3 class="mb-0 text-body fw-bold">
+                <i class="bi bi-activity text-primary me-2"></i>Canlı Akış
+            </h3>
+            
+            <div class="d-flex gap-2">
+                 @if (SignInManager.IsSignedIn(User))
+                 {
+                     <!-- DERS NOTU (Mavi) -->
+                     <button type="button" class="btn btn-sm btn-info text-white rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#newTopicModal">
+                        <i class="bi bi-journal-bookmark-fill"></i> Ders Notu / Soru
+                     </button>
+                     
+                     <!-- BAŞLIK AÇ (Sarı) -->
+                     <button type="button" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#generalTopicModal">
+                        <i class="bi bi-chat-quote-fill"></i> Başlık Aç
+                     </button>
+                 }
+                 else
+                 {
+                     <button class="btn btn-sm btn-info text-white rounded-pill px-3 shadow-sm" onclick="alert('Lütfen içerik paylaşmak için kayıt olunuz!');">
+                        <i class="bi bi-lock-fill"></i> Ders Notu
+                     </button>
+                     <button class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 shadow-sm" onclick="alert('Lütfen içerik paylaşmak için kayıt olunuz!');">
+                        <i class="bi bi-lock-fill"></i> Başlık Aç
+                     </button>
+                 }
+            </div>
+        </div>
+
+        @if (Model.Akis != null && Model.Akis.Any())
+        {
+            @foreach (var entry in Model.Akis)
+            {
+                <div class="card mb-4 border-0 shadow-sm fade-in" style="animation-duration: 0.5s;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-person-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">@entry.Author</h6>
+                                    <small class="text-muted" style="font-size: 0.75rem;">@entry.CreatedDate.ToTimeAgo()</small>
+                                </div>
+                            </div>
+                            @if(!string.IsNullOrEmpty(entry.Topic?.Department))
+                            {
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border-0">@entry.Topic.Department</span>
+                            }
+                        </div>
+
+                        <a asp-controller="Topics" asp-action="Details" asp-route-id="@entry.TopicId" class="d-block text-decoration-none text-body mb-2">
+                            <h5 class="fw-bold text-primary mb-1">@entry.Topic?.Title</h5>
+                        </a>
+                        
+                        <p class="card-text text-secondary mb-0" style="line-height: 1.6;">@entry.Content</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-4">
+                        <a asp-controller="Topics" asp-action="Details" asp-route-id="@entry.TopicId" class="btn btn-link btn-sm text-decoration-none p-0 text-primary fw-bold">
+                            Konuya Git <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="p-5 text-center fade-in">
+                <div class="mb-3">
+                    <i class="bi bi-wind fs-1 text-muted opacity-50"></i>
+                </div>
+                <h4 class="fw-bold text-secondary">Henüz bir ses yok...</h4>
+                <p class="text-muted mb-4">Okul koridorları çok sessiz. İlk sesi sen çıkar!</p>
+                <button type="button" class="btn btn-primary rounded-pill px-4 shadow-glow" data-bs-toggle="modal" data-bs-target="#generalTopicModal">
+                    <i class="bi bi-megaphone-fill me-2"></i>Ses Ver
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- YENİ MODAL (MULTIPART FORM) -->
+<div class="modal fade" id="newTopicModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered"> <!-- Geniş Modal -->
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Ders Notu Paylaş / Soru Sor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+
+            <form asp-controller="Home" asp-action="CreateTopic" method="post" enctype="multipart/form-data" autocomplete="off">
+                <input type="hidden" name="Type" value="0"> <!-- LectureNote -->
+                <div class="modal-body p-4">
+
+                    <!-- FAKÜLTE VE BÖLÜM SEÇİMİ -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Fakülte / Yüksekokul</label>
+                            <select id="facultySelect" name="Faculty" class="form-select" required>
+                                <option value="" selected disabled>Seçiniz...</option>
+                                <!-- JS ile doldurulacak -->
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Bölüm</label>
+                            <select id="departmentSelect" name="Department" class="form-select" required disabled>
+                                <option value="" selected disabled>Önce Fakülte Seçin</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- RUMUZ ALANI -->
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary">Rumuz / Adınız</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-success text-white"><i class="bi bi-person-check-fill"></i></span>
+                                <input type="text" class="form-control" value="@(user?.FullName ?? User.Identity.Name)" readonly>
+                            </div>
+                            <small class="text-success"><i class="bi bi-check-circle-fill"></i> @(user?.Email ?? "") hesabıyla paylaşılacak.</small>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary">Rumuz / Adınız</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-person-fill"></i></span>
+                                <input type="text" id="modalOwnerInput" name="Author" class="form-control" placeholder="Örn: Anonim Mühendis">
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Konu Başlığı</label>
+                        <input type="text" name="Title" class="form-control" placeholder="Örn: Algoritma Ders Notları" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Mesajınız / Açıklama</label>
+                        <textarea name="Content" class="form-control" rows="4" placeholder="Notlar hakkında bilgi verin veya sorunuzu sorun..." required></textarea>
+                    </div>
+                    
+                    <!-- DOSYA YÜKLEME -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Dosya Ekle (İsteğe Bağlı)</label>
+                        <input type="file" name="File" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                        <div class="form-text">PDF, Word veya Resim dosyaları yükleyebilirsiniz.</div>
+                    </div>
+
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-info text-white px-4">Paylaş <i class="bi bi-send-fill ms-1"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- GENEL BAŞLIK MODALI (SADE) -->
+<div class="modal fade" id="generalTopicModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold"><i class="bi bi-chat-quote-fill me-2"></i>Yeni Başlık Aç</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+
+            <form asp-controller="Home" asp-action="CreateTopic" method="post" enctype="multipart/form-data" autocomplete="off">
+                <input type="hidden" name="Type" value="1"> <!-- General -->
+                <div class="modal-body p-4">
+
+                    <!-- RUMUZ ALANI -->
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary">Rumuz / Adınız</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-success text-white"><i class="bi bi-person-check-fill"></i></span>
+                                <input type="text" class="form-control" value="@(user?.FullName ?? User.Identity.Name)" readonly>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Konu Başlığı</label>
+                        <input type="text" name="Title" class="form-control" placeholder="Örn: Kampüs yemekhanesi hakkında..." required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Mesajınız</label>
+                        <textarea name="Content" class="form-control" rows="4" placeholder="Ne hakkında konuşmak istiyorsun?" required></textarea>
+                    </div>
+                    
+                    <!-- DOSYA YÜKLEME -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Fotoğraf / Dosya Ekle</label>
+                        <input type="file" name="File" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                    </div>
+
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold px-4">Yayınla <i class="bi bi-send-fill ms-1"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // FAKÜLTE VE BÖLÜM VERİSİ
+    const universityData = [
+        {
+            name: "1) Sağlık Hizmetleri Meslek Yüksekokulu",
+            depts: ["Anestezi", "Çocuk Gelişimi", "Eczane Hizmetleri", "İlk ve Acil Yardım", "Sağlık Kurumları İşletmeciliği", "Tıbbi Dokümantasyon ve Sekreterlik", "Tıbbi Görüntüleme Teknikleri", "Yaşlı Bakımı"]
+        },
+        {
+            name: "2) Yozgat Meslek Yüksekokulu",
+            depts: ["Aşçılık", "Bilgisayar Destekli Tasarım ve Animasyon", "Büro Yönetimi ve Yönetici Asistanlığı", "Geleneksel El Sanatları", "İç Mekan Tasarımı", "İşletme Yönetimi", "Radyo ve Televizyon Programcılığı", "Sivil Savunma ve İtfaiyecilik", "Tarım Makineleri"]
+        },
+        {
+            name: "3) Ziraat Fakültesi",
+            depts: ["Bahçe Bitkileri", "Bitki Koruma", "Tarım Ekonomisi"]
+        },
+        {
+            name: "4) Akdağmadeni Meslek Yüksekokulu",
+            depts: ["Bankacılık ve Sigortacılık", "Elektrik", "Grafik Tasarımı", "Makine", "Mimari Restorasyon"]
+        },
+        {
+            name: "5) Mühendislik-Mimarlık Fakültesi",
+            depts: ["Bilgisayar Mühendisliği", "Elektrik-Elektronik Mühendisliği", "İnşaat Mühendisliği", "Makine Mühendisliği", "Mimarlık", "Şehir ve Bölge Planlama"]
+        },
+        {
+            name: "6) Boğazlıyan Meslek Yüksekokulu",
+            depts: ["Bilgisayar Programcılığı", "Elektronik Teknolojisi", "Gıda Teknolojisi", "Laborant ve Veteriner Sağlık", "Ormancılık ve Orman Ürünleri"]
+        },
+        {
+            name: "7) Şefaatli Meslek Yüksekokulu",
+            depts: ["Çağrı Merkezi Hizmetleri", "Tapu ve Kadastro"]
+        },
+        {
+            name: "8) Yerköy Meslek Yüksekokulu",
+            depts: ["Ceza İnfaz ve Güvenlik Hizmetleri", "Mahkeme Büro Hizmetleri", "Sosyal Güvenlik"]
+        },
+        {
+            name: "9) Sağlık Bilimleri Fakültesi",
+            depts: ["Çocuk Gelişimi (Fakülte)", "Ebelik (Fakülte)", "Hemşirelik (Fakülte)"]
+        },
+        {
+            name: "10) Diş Hekimliği Fakültesi",
+            depts: ["Diş Hekimliği"]
+        },
+        {
+            name: "11) Çekerek Fuat Oktay SHMYO",
+            depts: ["Evde Hasta Bakımı", "Tıbbi Tanıtım ve Pazarlama"]
+        },
+        {
+            name: "12) Eğitim Fakültesi",
+            depts: ["Fen Bilgisi Öğretmenliği", "İlköğretim Matematik Öğretmenliği", "İngilizce Öğretmenliği", "Okul Öncesi Öğretmenliği", "Rehberlik ve Psikolojik Danışmanlık", "Sınıf Öğretmenliği", "Sosyal Bilgiler Öğretmenliği", "Türkçe Öğretmenliği"]
+        },
+        {
+            name: "13) İktisadi ve İdari Bilimler Fakültesi",
+            depts: ["Finans ve Bankacılık (Fakülte)", "İktisat", "İşletme", "Maliye", "Sağlık Yönetimi (Fakülte)", "Siyaset Bilimi ve Kamu Yönetimi", "Uluslararası İlişkiler"]
+        },
+        {
+            name: "14) Sarıkaya FTR Yüksekokulu",
+            depts: ["Fizyoterapi ve Rehabilitasyon (Yüksekokul)"]
+        },
+        {
+            name: "15) İletişim Fakültesi",
+            depts: ["Gazetecilik", "Halkla İlişkiler ve Reklamcılık (Fakülte)", "Radyo, Televizyon ve Sinema", "Yeni Medya ve İletişim"]
+        },
+        {
+            name: "16) Akdağmadeni Sağlık Yüksekokulu",
+            depts: ["Hemşirelik (Yüksekokul)", "İş Sağlığı ve Güvenliği (Yüksekokul)"]
+        },
+        {
+            name: "17) Hukuk Fakültesi",
+            depts: ["Hukuk"]
+        },
+        {
+            name: "18) İlahiyat Fakültesi",
+            depts: ["İlahiyat", "İlahiyat (M.T.O.K.)"]
+        },
+        {
+            name: "19) Fen-Edebiyat Fakültesi",
+            depts: ["İngiliz Dili ve Edebiyatı", "Matematik", "Moleküler Biyoloji ve Genetik", "Sanat Tarihi", "Sosyoloji", "Tarih", "Türk Dili ve Edebiyatı"]
+        },
+        {
+            name: "20) Sorgun Meslek Yüksekokulu",
+            depts: ["İnşaat Teknolojisi", "Muhasebe ve Vergi Uygulamaları", "Optisyenlik", "Otomotiv Teknolojisi", "Özel Güvenlik ve Koruma", "Raylı Sistemler Makine Teknolojisi"]
+        },
+        {
+            name: "21) Tıp Fakültesi",
+            depts: ["Tıp"]
+        },
+        {
+            name: "22) Veteriner Fakültesi",
+            depts: ["Veterinerlik"]
+        }
+    ];
+
+    const facultySelect = document.getElementById('facultySelect');
+    const departmentSelect = document.getElementById('departmentSelect');
+
+    // Sayfa Yüklenince Fakülteleri Doldur
+    universityData.forEach(unit => {
+        let option = document.createElement("option");
+        option.text = unit.name;
+        option.value = unit.name;
+        facultySelect.add(option);
+    });
+
+    // Fakülte Seçilince Bölümleri Doldur
+    facultySelect.addEventListener('change', function() {
+        // Bölümleri Temizle
+        departmentSelect.innerHTML = '<option value="" selected disabled>Seçiniz...</option>';
+        departmentSelect.disabled = false;
+
+        // Seçilen fakülteyi bul
+        const selectedName = this.value;
+        const selectedUnit = universityData.find(u => u.name === selectedName);
+
+        if (selectedUnit) {
+            selectedUnit.depts.forEach(dept => {
+                let option = document.createElement("option");
+                option.text = dept;
+                option.value = dept;
+                departmentSelect.add(option);
+            });
+        }
+    });
+
+    var myModal = document.getElementById('newTopicModal');
+    myModal.addEventListener('shown.bs.modal', function () {
+        var ownerInput = document.getElementById('modalOwnerInput');
+        if(ownerInput) ownerInput.value = '';
+    });
+</script>

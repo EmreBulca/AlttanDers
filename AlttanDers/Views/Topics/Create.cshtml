@@ -1,0 +1,57 @@
+﻿@model KampusKodu.Models.CreateTopicViewModel
+
+@{
+    ViewData["Title"] = "Yeni Başlık";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Yeni Konu Başlat</h4>
+                </div>
+                <div class="card-body bg-light">
+                    <form asp-action="Create" method="post" autocomplete="off">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Konu Başlığı</label>
+                            <input asp-for="Title" class="form-control" placeholder="Örn: Yemekhane Fiyatları Hakkında" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">İlk Yorumun</label>
+                            <textarea asp-for="Content" class="form-control" rows="5" placeholder="Konu hakkında ne düşünüyorsun?"></textarea>
+                            <span asp-validation-for="Content" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Görünecek İsim (İsteğe Bağlı)</label>
+                            <input asp-for="Author" class="form-control" placeholder="Boş bırakırsan 'Gizli Üye' görünürsün" autocomplete="off" />
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">✅ Başlığı Yayınla</button>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Vazgeç</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            // DÜZELTME BURADA: "Owner" yerine "Author" yazdık çünkü asp-for="Author" kullandın.
+            var isimKutusu = document.querySelector('input[name="Author"]');
+
+            if (isimKutusu) {
+                isimKutusu.value = ""; // KUTUYU ZORLA BOŞALT
+                isimKutusu.setAttribute("autocomplete", "off");
+            }
+        }, 100);
+    });
+</script>

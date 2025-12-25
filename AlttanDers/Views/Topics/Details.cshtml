@@ -1,0 +1,224 @@
+﻿@model KampusKodu.Models.Topic
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
+
+@{
+    ViewData["Title"] = Model.Title;
+    var user = await UserManager.GetUserAsync(User);
+    var isAdmin = User.IsInRole("Admin");
+    var currentUrl = $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}{Context.Request.QueryString}";
+}
+
+<div class="container mt-4">
+
+    <!-- HEADER: BAŞLIK, FAKÜLTE, BÖLÜM -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="display-6 text-body-emphasis fw-bold">@Model.Title</h1>
+            <div class="mt-2">
+                 @if(!string.IsNullOrEmpty(Model.Department))
+                 {
+                     <span class="badge bg-secondary">@Model.Faculty > @Model.Department</span>
+                 }
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            @if (isAdmin || (user != null && Model.UserId == user.Id))
+            {
+                <form asp-action="DeleteTopic" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Bu konuyu ve tüm içeriğini silmek istediğine emin misin?');">
+                        <i class="bi bi-trash-fill"></i> Konuyu Sil
+                    </button>
+                </form>
+            }
+
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <!-- DOSYA İNDİRME BUTONU -->
+    @if (!string.IsNullOrEmpty(Model.FilePath))
+    {
+        <div class="alert alert-warning d-flex align-items-center mb-4 shadow-sm" role="alert">
+            <i class="bi bi-file-earmark-arrow-down fs-3 me-3"></i>
+            <div>
+                <strong>Bu başlıkta ekli bir dosya var!</strong>
+                <div class="mt-1">
+                    <a href="@Model.FilePath" target="_blank" class="btn btn-sm btn-dark">
+                        <i class="bi bi-download"></i> Dosyayı Görüntüle / İndir
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+
+    <hr />
+
+    <div class="row">
+        @if (Model.Entries != null && Model.Entries.Any())
+        {
+            @foreach (var entry in Model.Entries.OrderBy(e => e.CreatedDate))
+            {
+                var isOwner = user != null && entry.UserId == user.Id;
+
+                <div class="col-12 mb-4">
+                    <div class="card shadow-sm border-0 fade-in" style="animation-delay: 0.1s;">
+                        <div class="card-body p-4">
+                            <p class="card-text fs-5" style="line-height: 1.7;">@entry.Content</p>
+                            
+                            @if(!string.IsNullOrEmpty(entry.FilePath))
+                            {
+                                <div class="mt-3 mb-3 p-3 bg-light rounded-3 border">
+                                    @if(entry.FilePath.EndsWith(".jpg") || entry.FilePath.EndsWith(".jpeg") || entry.FilePath.EndsWith(".png"))
+                                    {
+                                        <img src="@entry.FilePath" class="img-fluid rounded shadow-sm" style="max-height: 400px;" alt="Yorum Görseli" />
+                                    }
+                                    else
+                                    {
+                                        <a href="@entry.FilePath" target="_blank" class="btn btn-sm btn-warning text-dark shadow-sm fw-bold">
+                                            <i class="bi bi-paperclip me-1"></i> Ekli Dosyayı İndir
+                                        </a>
+                                    }
+                                </div>
+                            }
+
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-opacity-10">
+                                <div class="d-flex align-items-center gap-2">
+                                     <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-body fw-bold d-block">@entry.Author</small>
+                                        <small class="text-muted" style="font-size: 0.75rem;">@entry.CreatedDate.ToString("dd.MM.yyyy HH:mm")</small>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <!-- RAPOR ET BUTONU -->
+                                    <button type="button" class="btn btn-sm btn-link text-muted text-decoration-none" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#reportModal"
+                                            onclick="prepareReport('@entry.Author', '@entry.Content')">
+                                        <i class="bi bi-flag-fill"></i> <span class="d-none d-sm-inline">Raporla</span>
+                                    </button>
+
+                                    <!-- SİL BUTONU (ADMIN veya SAHİBİ) -->
+                                    @if (isAdmin || isOwner)
+                                    {
+                                        <form asp-controller="Topics" asp-action="DeleteEntry" method="post">
+                                            <input type="hidden" name="id" value="@entry.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger border-0" onclick="return confirm('Silmek istiyor musun?');">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-info">
+                Henüz kimse yazmamış. İlk yazan sen ol! 🚀
+            </div>
+        }
+    </div>
+
+    <!-- YENİ ENTRY FORMU -->
+    <div class="card shadow-lg border-0 mt-5 mb-5">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-reply-fill"></i> Cevap Yaz</h5>
+        </div>
+        <div class="card-body p-4 bg-body-tertiary">
+            @if (SignInManager.IsSignedIn(User)) 
+            {
+                <form asp-action="CreateEntry" method="post" enctype="multipart/form-data" autocomplete="off">
+                    <input type="hidden" name="TopicId" value="@Model.Id" />
+
+                    <!-- Oturum Açık İse Yazan Kişi Bellidir -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Yorumunuz (@User.Identity.Name olarak)</label>
+                        <textarea name="Content" class="form-control" rows="3" placeholder="Buraya yazın..." required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary">Görsel / Dosya Ekle</label>
+                        <input type="file" name="File" class="form-control form-control-sm" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                    </div>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary px-4">Gönder 🚀</button>
+                    </div>
+                </form>
+            }
+            else
+            {
+                <div class="alert alert-warning text-center">
+                    Cevap yazabilmek için <a asp-controller="Account" asp-action="Login" class="alert-link">giriş yapmalısınız</a>.
+                </div>
+            }
+        </div>
+    </div>
+
+</div>
+
+<!-- RAPORLAMA MODALI (FORMSPREE) -->
+<div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill"></i> İçerik Raporla</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="https://formspree.io/f/xnjanopa" method="POST">
+                
+                <!-- Gizli Alanlar: Raporlanan İçerik Bilgisi -->
+                <input type="hidden" name="Konu" value="KOZ Rapor Bildirimi" />
+                <input type="hidden" name="Baslik_Link" value="@currentUrl" />
+                <input type="hidden" name="Baslik_Adi" value="@Model.Title" />
+                
+                <input type="hidden" id="reportAuthor" name="RaporlananKişi" />
+                
+                <div class="modal-body">
+                    <div class="alert alert-warning small">
+                        Bu içeriği uygunsuz bulduysanız lütfen yönetime bildirin. Bu işlem anonimdir.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Şikayet Nedeni?</label>
+                        <select name="Sebep" class="form-select" required>
+                            <option value="Küfür/Hakaret">Küfür veya Hakaret</option>
+                            <option value="Spam/Reklam">Spam veya Reklam</option>
+                            <option value="Yanlış Bilgi">Yanlış Bilgi</option>
+                            <option value="Diğer">Diğer</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Raporlanan İçerik</label>
+                        <textarea id="reportContent" name="Icerik_Ozet" class="form-control" rows="3" readonly></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-danger">Raporu Gönder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Raporla butonuna basılınca modalı doldur
+    function prepareReport(author, content) {
+        document.getElementById('reportAuthor').value = author;
+        document.getElementById('reportContent').value = content;
+    }
+</script>
