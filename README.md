@@ -1,4 +1,4 @@
- AlttanDers (KampusKodu) 🎓
+ AlttanDers 🎓
 
 ![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat&logo=dotnet)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=flat&logo=bootstrap)
